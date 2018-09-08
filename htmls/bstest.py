@@ -25,5 +25,5 @@ with open('html6.html','r',encoding='utf-8') as f:
     contactos=[x for x in contactos if x != '\n']
     for contact in contactos:
         print(getContactInfo(contact))
-    chat=sediv[7]
+    chat=firstChild(sediv[3])
 
