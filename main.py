@@ -23,6 +23,21 @@ pyautogui.typewrite("Hello World!")
 time.sleep(randint(1,5))
 pyautogui.press('enter')'''
 
+def hasher(data, lenght):
+    max = "f" * lenght
+    max = int(max,16)
+    data = [str(d) for d in data]
+    accumulator = 0
+    chars = 0
+    for d in data:
+        for c in d:
+            accumulator += ord(c)
+        chars += len(d)
+    
+    result = accumulator ** chars
+    result %= max
+    return hex(result)[2:]
+
 def randSleep(min = 0.5, max = 1):
     time.sleep(random.uniform(min, max))
 
@@ -74,7 +89,8 @@ def getMessageInfo(element,contact):
     message_e = element('div',{'data-pre-plain-text':regex})[0]
     time = message_e['data-pre-plain-text'].replace('[','').replace('] ' + contact + ': ','')
     txt = list(list(message_e)[0])[0].string
-    return {'Time': time, 'Txt':txt, 'From': contact}
+    hash = hasher([time,txt,contact],6)
+    return {'Time': time, 'Txt':txt, 'From': contact, "hash":hash}
 
 def getChatInfo(chat):
     try:
@@ -127,18 +143,40 @@ def sendMessage(Txt, To):
     randSleep()
     pyautogui.press('esc')
 
+def checkHashes(messages):
+    hashes = []
+    with open(config['readed_hashes'],'r',encoding='utf-8') as file:
+        hashes = json.loads(file.read())["hashes"]
+        for msg in messages:
+            if msg["hash"] not in hashes:
+                hashes.append(msg["hash"])
+                prompts.append("New message {}!".format(msg["hash"]))
+                newMessage(msg)
+        
+    with open(config['readed_hashes'],'w',encoding='utf-8') as file:
+        file.write(json.dumps({"hashes":hashes}))
+        
+def newMessage(msg):
+    with open(config['received'] + msg["hash"] + ".json",'w',encoding='utf-8') as file:
+        file.write(json.dumps(msg))
+
+
 
 sent = False
+config = None
+prompts = []
+with open('config.json','r',encoding='utf-8') as file:
+    config = json.loads(file.read())
 
-time.sleep(5)
+time.sleep(config['initial_sleep'])
 loadJQuery()
-os.chdir('htmls')
+
 while True:
-    READED = os.listdir('READED')
-    for f in os.listdir():
+    READED = os.listdir(config['readed'])
+    for f in os.listdir(config['htmls']):
         if f.endswith('.json') and f not in READED:
             try:
-                with open(f, 'r', encoding='utf-8') as file:
+                with open(config['htmls'] + f, 'r', encoding='utf-8') as file:
                     obj = json.loads(file.read())
                     print(obj['URL'])
                     soup = BeautifulSoup(obj['HTML'], 'html.parser')
@@ -162,19 +200,19 @@ while True:
                     
                     chat=list(firstChild(sediv[3]))#_1GX8_
                     chat = getChatInfo(chat)
+                    checkHashes(chat["messages"])
                     pprint(chat)
                     for contact in contactos:
                         pprint(getContactInfo(contact,chat['selected_contact']))
+
+                    for pro in prompts:
+                        print(pro)
             except:
                 #While having something on the contact search input, the HTML changes heavily and the getContactInfo fails
                 pass
-            os.rename('.\\'+f,'.\\READED\\'+f)
+            os.rename(config['htmls'] + f,config['readed'] + f)
     time.sleep(1)
-    newjsons = [x for x in os.listdir() if x.endswith('json')]
-
-    if not sent:
-        sendMessage("Hola","Sebastian")
-        sent = True
+    newjsons = [x for x in os.listdir(config['htmls']) if x.endswith('json')]
 
     if len(newjsons) > 0:
         os.system('cls')

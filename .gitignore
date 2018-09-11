@@ -2,3 +2,5 @@
 /htmls/*.json
 /htmls/*.crdownload
 /htmls/READED/*
+/messages/received/*.json
+/messages/to_send/*.json

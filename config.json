@@ -1,0 +1,10 @@
+{
+    "htmls": "C:\\Users\\Sebastián\\Desktop\\WhatsAPI\\htmls\\",
+    "readed": "C:\\Users\\Sebastián\\Desktop\\WhatsAPI\\htmls\\READED\\",
+    "messages": "C:\\Users\\Sebastián\\Desktop\\WhatsAPI\\messages\\",
+    "received": "C:\\Users\\Sebastián\\Desktop\\WhatsAPI\\messages\\received\\",
+    "to_send": "C:\\Users\\Sebastián\\Desktop\\WhatsAPI\\messages\\to_send\\",
+    "readed_hashes": "C:\\Users\\Sebastián\\Desktop\\WhatsAPI\\messages\\readed.json",
+    "initial_sleep": 5
+
+}
