@@ -4,24 +4,10 @@ import time
 import json
 import os
 import re
-import pyautogui
 import pyperclip
 from bs4 import BeautifulSoup
 from random import randint
 from pprint import pprint
-
-'''time.sleep(10)
-pyautogui.press('tab')
-time.sleep(randint(1,5))
-pyautogui.press('tab')
-time.sleep(randint(1,5))
-pyautogui.press('tab')
-time.sleep(randint(1,5))
-pyautogui.press('tab')
-time.sleep(randint(1,5))
-pyautogui.typewrite("Hello World!")
-time.sleep(randint(1,5))
-pyautogui.press('enter')'''
 
 def hasher(data, lenght):
     max = "f" * lenght
@@ -74,17 +60,6 @@ def isMessage(element, contact):
         return True
 
 def getMessageInfo(element,contact):
-    '''try:
-        element = list(element)[1]
-    except:
-        element = list(element)[0]
-    print(element)
-    #_3_7SH _14b5J Zq3Mc tail
-    element = list(element)[2]#Tkt2p
-    message = list(list(list(element)[0])[0])[0].string
-    time = list(list(list(element)[1])[0])[1].string
-    messageInfo = {'Time':time,'Txt':message}
-    print(messageInfo)'''
     regex = re.compile('.*' + contact)
     message_e = element('div',{'data-pre-plain-text':regex})[0]
     time = message_e['data-pre-plain-text'].replace('[','').replace('] ' + contact + ': ','')
@@ -114,34 +89,56 @@ def loadJQuery():
     pyautogui.hotkey('ctrl','shift','j')
 
 def sendMessage(Txt, To):
+    sleep = 1
+    pyperclip.copy("$('input')[0].focus();")
     #Focus on search input
+    print("copy")
+    time.sleep(sleep)
     pyautogui.hotkey('ctrl','shift','j')
-    randSleep()
-    pyautogui.typewrite("$('input')[0].focus()")
+    print("o console")
+    time.sleep(sleep)
+    pyautogui.hotkey('ctrl','v')
+    print("paste")
+    time.sleep(sleep)
     pyautogui.press('enter')
+    print("enter")
+    time.sleep(sleep)
     pyautogui.hotkey('ctrl','shift','j')
+    print("c console")
     #Type contact name on search input
-    randSleep()
+    time.sleep(sleep)
     pyautogui.typewrite(To)
-    randSleep()
+    print("contacto")
+    time.sleep(sleep)
     #Tab to select contact and focus on message input
     pyautogui.press('tab')
     pyautogui.press('tab')
     pyautogui.press('tab')
-    time.sleep(1)
+    print("tabs")
+    time.sleep(sleep)
     #Send message
     pyautogui.typewrite(Txt)
-    randSleep()
+    print("contenido")
+    time.sleep(sleep)
     pyautogui.press('enter')
+    print("enter")
+    time.sleep(sleep)
     #Focus on search input
     pyautogui.hotkey('ctrl','shift','j')
-    randSleep()
-    pyautogui.typewrite("$('input')[0].focus()")
+    print("o console")
+    time.sleep(sleep)
+    pyautogui.hotkey('ctrl','v')
+    print("paste")
+    time.sleep(sleep)
     pyautogui.press('enter')
+    print("enter")
+    time.sleep(sleep)
     pyautogui.hotkey('ctrl','shift','j')
+    print("c console")
     #Clear search input
-    randSleep()
+    time.sleep(sleep)
     pyautogui.press('esc')
+    print("esc")
 
 def checkHashes(messages):
     hashes = []
@@ -159,6 +156,15 @@ def checkHashes(messages):
 def newMessage(msg):
     with open(config['received'] + msg["hash"] + ".json",'w',encoding='utf-8') as file:
         file.write(json.dumps(msg))
+
+
+def checkNewMessages():
+    for msg_to_send in os.listdir(config["to_send"]):
+        if msg_to_send.endswith(".json"):
+            with open(config['to_send'] + msg_to_send,'r',encoding='utf-8') as file:
+                msg = json.loads(file.read())
+                sendMessage(msg["txt"],msg["to"])
+            os.remove(config["to_send"]+msg_to_send)
 
 
 
@@ -211,6 +217,10 @@ while True:
                 #While having something on the contact search input, the HTML changes heavily and the getContactInfo fails
                 pass
             os.rename(config['htmls'] + f,config['readed'] + f)
+
+
+    checkNewMessages()
+
     time.sleep(1)
     newjsons = [x for x in os.listdir(config['htmls']) if x.endswith('json')]
 
