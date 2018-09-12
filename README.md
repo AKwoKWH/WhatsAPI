@@ -23,6 +23,20 @@ The core of WhatsAPI is composed of the [PyAutoGUI](https://github.com/asweigart
 9. Every time a new message (with a resulting hash not included in the readed hashes json) is identified in the HTML, a new json will be created in the corresponding directory containning the sender, the timestamp and the content of said message. Also, every time a new json is created in the directory for messages to send, it will be read by main.py, sent to the stated receipent and deleted the file.
 10. External applications can read new messages' jsons to effectively receive the messages and create new jsons to send them.
 
+### Getting the HTML and scrapping the data
+
+When I began this project, I found it hard first to get the same HTML as with the browser, it was possible, but it would have involved a lot of work looking at the headers, cookies and requests sent and received by the browser, also a way to keep my connection alive instead of several HTTP requests a minute (something that probably would end with my API banned), etc. Because of that, I decided to leave that work to the browser. Instead, I developed a Chrome extension to simply extract the HTML every time it changed and from there, scrap it all. 
+
+To do that, I had to invest several hours looking at WhatsApp's web app's HTML, finding how the contact list is structured, where do the messages appear, how can I make the bot recognize a message. And that was a challenge because WhatsApp changes the classe names by seemingly random strings every now and then, so I couldn't simply do soup('div', 'message') and voilà, but fortunately, it had a weakness there I found while trying to make the program find messages by walking the DOM in a specific way. Messages have a special attribute named "data-pre-plain-text" that contains the time the message was sent, who sent it and the content of the div with that attribute is the message content itself, everything I needed.
+
+### Detecting old messages
+
+To avoid detecting of old messages, I decided to (provisionally) generate a hash calculated from the message's content, time and sender, and store the resulting hash to check that list everytime a message is detected, and if it's not there, create the json file of that message. In the future, I plan to make this work with a database and store the whole message.
+
+### Sending messages
+
+This was the trickiest part, because I had to simulate a human sending a message as close as possible. What I did was using jQuery to get the element corresponding to the contact search input and focus in it. Once there, it was a matter of writting the desired contact, tab once to select that contact in the contact list, tab two more times to focus on the message input (that is actuallty not an input), writting the message and pressing enter to send.
+
 ## Install and setup
 
 ### Prerequisites
@@ -60,4 +74,25 @@ If you want to stop it, simply switch to the command prompt window and press ctr
 
 The thing about WhatsApp, is not only the lack of an API with easy REST calls to urls, it's that they actually don't want APIs at all, not even made by users. Because of this, a lot of APIs work for a while, until WhatsApp identifies a certain user as a bot and bans that phone number.
 
-Because of this, to make a bot that avoids being detected, one must make the bot extremely hard to differenciate from a human. And this is exactly what WhatsAPI does. Almost every interaction between WhatsAPI and the WhatsApp web application, is made almost like a human would do, and those that are not exactly what a human would do, are almost certainly undetectable by WhatsApp, however everything WhatsAPI does, can be done by a human too using just the keyboard and a brain.
+Exactly to avoid being detected, I decided to make something that works as close as posible to a human. And this is exactly what WhatsAPI does. Almost every interaction between WhatsAPI and the WhatsApp web application, is made almost like a human would do, and those that are not exactly what a human would do, are almost certainly undetectable by WhatsApp, however everything WhatsAPI does, can be done by a human too using just the keyboard and a brain.
+
+## To-Do List
+
+### Beta
+
+- [x] HTML-Surveillor Chrome Extension
+- [x] Parsing and scrapping of web app's HTML
+- [x] Identification of new messages
+- [x] Sending of messages
+- [x] Reception of messages to send
+- [ ] Automatically check contacts with unread messages
+- [ ] Making an actual console UI
+- [ ] Setting up a VM as a dedicated working desktop
+
+### v1
+
+- [ ] Usage of PyAutoGUI mouse control and screen image finding
+- [ ] HTTP server to use requests as a method of sending and receving data instead of json files
+- [ ] Database to save processed messages
+
+##
