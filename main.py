@@ -164,7 +164,7 @@ def checkNewMessages():
             with open(config['to_send'] + msg_to_send,'r',encoding='utf-8') as file:
                 msg = json.loads(file.read())
                 sendMessage(msg["txt"],msg["to"])
-            os.remove(config["to_send"]+msg_to_send)
+            os.remove(os.path.join(config["to_send"],msg_to_send))
 
 
 
