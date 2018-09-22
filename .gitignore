@@ -4,3 +4,4 @@
 /htmls/READED/*
 /messages/received/*.json
 /messages/to_send/*.json
+exec-json-saver

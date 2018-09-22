@@ -5,9 +5,11 @@ import json
 import os
 import re
 import pyperclip
+import sys
 from bs4 import BeautifulSoup
-from random import randint
+from random import randint, random, uniform
 from pprint import pprint
+from datetime import datetime
 
 def hasher(data, lenght):
     max = "f" * lenght
@@ -25,7 +27,7 @@ def hasher(data, lenght):
     return hex(result)[2:]
 
 def randSleep(min = 0.5, max = 1):
-    time.sleep(random.uniform(min, max))
+    time.sleep(uniform(min, max))
 
 def firstChild(item):
     return list(item)[0]
@@ -89,56 +91,45 @@ def loadJQuery():
     pyautogui.hotkey('ctrl','shift','j')
 
 def sendMessage(Txt, To):
-    sleep = 1
+    sleep = random() * 2
     pyperclip.copy("$('input')[0].focus();")
     #Focus on search input
-    print("copy")
     time.sleep(sleep)
     pyautogui.hotkey('ctrl','shift','j')
-    print("o console")
     time.sleep(sleep)
     pyautogui.hotkey('ctrl','v')
-    print("paste")
     time.sleep(sleep)
     pyautogui.press('enter')
-    print("enter")
     time.sleep(sleep)
     pyautogui.hotkey('ctrl','shift','j')
-    print("c console")
     #Type contact name on search input
     time.sleep(sleep)
     pyautogui.typewrite(To)
-    print("contacto")
     time.sleep(sleep)
     #Tab to select contact and focus on message input
     pyautogui.press('tab')
     pyautogui.press('tab')
     pyautogui.press('tab')
-    print("tabs")
     time.sleep(sleep)
     #Send message
     pyautogui.typewrite(Txt)
-    print("contenido")
     time.sleep(sleep)
     pyautogui.press('enter')
-    print("enter")
     time.sleep(sleep)
     #Focus on search input
     pyautogui.hotkey('ctrl','shift','j')
-    print("o console")
     time.sleep(sleep)
     pyautogui.hotkey('ctrl','v')
-    print("paste")
     time.sleep(sleep)
     pyautogui.press('enter')
-    print("enter")
     time.sleep(sleep)
     pyautogui.hotkey('ctrl','shift','j')
-    print("c console")
     #Clear search input
     time.sleep(sleep)
     pyautogui.press('esc')
-    print("esc")
+    prompts.append("[{}] > New message sent to {} : {}".format(
+        datetime.now().strftime("%Y/%m/%d %H:%M:%S"), To, Txt))
+    
 
 def checkHashes(messages):
     hashes = []
@@ -147,7 +138,8 @@ def checkHashes(messages):
         for msg in messages:
             if msg["hash"] not in hashes:
                 hashes.append(msg["hash"])
-                prompts.append("New message {}!".format(msg["hash"]))
+                prompts.append("[{}] > New message from {} : {}".format(
+                    datetime.now().strftime("%Y/%m/%d %H:%M:%S"),msg["From"], msg["Txt"]))
                 newMessage(msg)
         
     with open(config['readed_hashes'],'w',encoding='utf-8') as file:
@@ -174,8 +166,9 @@ prompts = []
 with open('config.json','r',encoding='utf-8') as file:
     config = json.loads(file.read())
 
-time.sleep(config['initial_sleep'])
-loadJQuery()
+if "-nojQuery" not in sys.argv:
+    time.sleep(config['initial_sleep'])
+    loadJQuery()
 
 while True:
     READED = os.listdir(config['readed'])
@@ -186,6 +179,8 @@ while True:
                     obj = json.loads(file.read())
                     print(obj['URL'])
                     soup = BeautifulSoup(obj['HTML'], 'html.parser')
+                    
+                    # Deleting of unnecesary stuff that form like 60% of the HTML
                     for svg in soup('svg'):
                         svg.decompose()
                     for head in soup('head'):
@@ -207,14 +202,25 @@ while True:
                     chat=list(firstChild(sediv[3]))#_1GX8_
                     chat = getChatInfo(chat)
                     checkHashes(chat["messages"])
-                    pprint(chat)
-                    for contact in contactos:
-                        pprint(getContactInfo(contact,chat['selected_contact']))
-
-                    for pro in prompts:
-                        print(pro)
+                    print("Contacts:")
+                    for c in contactos:
+                        contact = getContactInfo(c,chat['selected_contact'])
+                        if contact["selected"]:
+                            sel = ">"
+                        else:
+                            sel = "*"
+                        print("{} {} ({})".format(sel ,contact["contact"], contact["unreads"]))
+                    print("==========================")
+                    print("Chat: " + chat["selected_contact"])
+                    for msg in chat["messages"]:
+                        print("[{}]: {}".format(msg["Time"],msg["Txt"]))
+                    print("==========================")
+                    for p in prompts[-10:]:
+                        print(p)
+                    
             except:
-                #While having something on the contact search input, the HTML changes heavily and the getContactInfo fails
+                print("ERROR!")
+                #While having something on the contact search input, the HTML changes heavily and the getContactInfo fails (disastrously)
                 pass
             os.rename(config['htmls'] + f,config['readed'] + f)
 
